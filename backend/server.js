@@ -14,7 +14,7 @@ app.use('/tickets', ticketsRouter);
 
 
 app.get('/', (req, res) => {
-  res.json({ message: 'DeskFlow API is running (in-memory storage)' });
+  res.json({ message: 'DeskFlow API is running' });
 });
 
 app.listen(PORT, () => {
