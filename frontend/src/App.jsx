@@ -5,7 +5,7 @@ import TicketForm from './components/TicketForm';
 import TicketBoard from './components/TicketBoard';
 import Filters from './components/Filters';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://deskflow-t17h.onrender.com';
 
 function App() {
   const [tickets, setTickets] = useState([]);
