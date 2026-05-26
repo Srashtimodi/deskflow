@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-// In-memory storage
 let tickets = [];
 let nextId = 1;
 
-// Helper function to calculate derived fields
+
 function addDerivedFields(ticket) {
-  // Calculate age in minutes
+
   const ageMinutes = Math.floor((Date.now() - new Date(ticket.createdAt).getTime()) / (1000 * 60));
   
-  // SLA limits in minutes
   const slaMinutes = {
     urgent: 60,
     high: 240,
@@ -18,7 +16,6 @@ function addDerivedFields(ticket) {
     low: 4320
   };
   
-  // Check if SLA is breached (only for open and in_progress)
   const slaBreached = (ticket.status === 'open' || ticket.status === 'in_progress') 
     && ageMinutes > slaMinutes[ticket.priority];
   
@@ -29,7 +26,7 @@ function addDerivedFields(ticket) {
   };
 }
 
-// GET /tickets/stats - Get ticket statistics
+
 router.get('/stats', (req, res) => {
   try {
     const byStatus = {};
@@ -49,10 +46,9 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// GET /tickets - Get all tickets
 router.get('/', (req, res) => {
   try {
-    // Add derived fields and sort by createdAt (newest first)
+   
     const ticketsWithFields = tickets
       .map(ticket => addDerivedFields(ticket))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -63,12 +59,12 @@ router.get('/', (req, res) => {
   }
 });
 
-// POST /tickets - Create a new ticket
+
 router.post('/', (req, res) => {
   try {
     const { subject, description, customerEmail, priority } = req.body;
     
-    // Validation
+    
     if (!subject || !description || !customerEmail || !priority) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -96,7 +92,7 @@ router.post('/', (req, res) => {
   }
 });
 
-// PATCH /tickets/:id - Update a ticket
+
 router.patch('/:id', (req, res) => {
   try {
     const ticketIndex = tickets.findIndex(t => t._id === req.params.id);
@@ -107,12 +103,10 @@ router.patch('/:id', (req, res) => {
     
     const ticket = tickets[ticketIndex];
 
-    // Handle status transitions
     if (req.body.status && req.body.status !== ticket.status) {
       const currentStatus = ticket.status;
       const newStatus = req.body.status;
-      
-      // Define valid transitions
+
       const validTransitions = {
         open: ['in_progress'],
         in_progress: ['resolved', 'open'],
@@ -120,7 +114,7 @@ router.patch('/:id', (req, res) => {
         closed: []
       };
       
-      // Check if transition is valid
+      
       if (!validTransitions[currentStatus].includes(newStatus)) {
         return res.status(400).json({ 
           message: `Invalid status transition from ${currentStatus} to ${newStatus}` 
@@ -129,18 +123,16 @@ router.patch('/:id', (req, res) => {
       
       ticket.status = newStatus;
       
-      // Set resolvedAt when moving to resolved
       if (newStatus === 'resolved') {
         ticket.resolvedAt = new Date().toISOString();
       }
       
-      // Clear resolvedAt when moving back from resolved
+     
       if (currentStatus === 'resolved' && newStatus === 'in_progress') {
         ticket.resolvedAt = null;
       }
     }
 
-    // Update other fields if provided
     if (req.body.subject) ticket.subject = req.body.subject.trim();
     if (req.body.description) ticket.description = req.body.description;
     if (req.body.customerEmail) ticket.customerEmail = req.body.customerEmail.trim().toLowerCase();
@@ -159,7 +151,7 @@ router.patch('/:id', (req, res) => {
   }
 });
 
-// DELETE /tickets/:id - Delete a ticket
+
 router.delete('/:id', (req, res) => {
   try {
     const ticketIndex = tickets.findIndex(t => t._id === req.params.id);
